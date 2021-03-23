@@ -1,7 +1,11 @@
 package com.esp.esp32;
 
+import com.esp.converters.ConvertInputStreamToText;
 import com.esp.image.ImageService;
 import com.esp.models.*;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,8 +57,8 @@ public class EspService {
         return esp;
     }
 
-    public File saveImgFromEspToFileAndToDb(String name) throws IOException, PrinterException {
-        URL url = new URL("http://192.168.2.124/saved-photo");
+    public File saveImgFromEspToFileAndToDb(String name) throws Exception {
+        URL url = new URL("http://192.168.0.101/saved-photo");
         BufferedImage img = ImageIO.read(url);
         //String fileName = LocalDate.now() + "ESP32" +  name + ".jpg";
         var id = ThreadLocalRandom.current().nextLong(2000000,5000000L);
@@ -67,8 +71,8 @@ public class EspService {
         return new File("target/classes/espImgDir/" + fileName);
     }
 
-    public ImageEntity saveImgFromEspToFileAndToDbEntity(String name) throws IOException {
-        URL url = new URL("http://192.168.2.124/saved-photo");
+    public ImageEntity saveImgFromEspToFileAndToDbEntity(String name) throws Exception {
+        URL url = new URL("http://192.168.0.101/saved-photo");
         BufferedImage img = ImageIO.read(url);
         //String fileName = LocalDate.now() + "ESP32" +  name + ".jpg";
         var id = ThreadLocalRandom.current().nextLong(2000000,5000000L);
@@ -84,16 +88,16 @@ public class EspService {
     //returns the Id of Just created Image
     public long getCapturedAndSavedImgId(String name) throws Exception {
         var ent = saveImgFromEspToFileAndToDbEntity(name);
-        return ent.getId();
+        return Long.parseLong(ent.getId()); //just return the String
     }
 
-    public long saveImgFromEspToDbAsFile(String name) throws Exception {
+    public String saveImgFromEspToDbAsFile(String name) throws Exception {
         var id = ThreadLocalRandom.current().nextLong(2000000,5000000L);
         var fileName = id + "_" + name; //var fileName = name + ".jpg";
         var fileOutput = new File("src/main/resources/espImgDir/" +  id + "_" + name + ".jpg"); //var createdFile = this.getClass().getResourceAsStream(fileOutput.getAbsolutePath());
 
         try{
-            URL url = new URL("http://192.168.2.124/saved-photo");
+            URL url = new URL("http://192.168.0.101/saved-photo");
             var  img = ImageIO.read(url);
             ImageIO.write(img, "jpg", fileOutput);
         }catch(Exception e){
@@ -102,12 +106,26 @@ public class EspService {
 
         ImageEntity m =  new ImageEntity(fileName, fileOutput);
         var ent = imageService.savePictureFile(m);
-        return ent.getId();
+        return ent.getId(); //Or just return the String
     }
 
     public void captureImage() throws IOException {
-        URL url = new URL("http://192.168.2.124/capture");
+        URL url = new URL("http://192.168.0.101/capture");
         BufferedImage img = ImageIO.read(url);
+    }
+
+    public String deleteImageInEsp() throws IOException {
+        var url = "http://192.168.0.101/delete";
+        HttpPost post = new HttpPost(url);
+        var httpResponse = HttpClientBuilder.create().build().execute(post);
+        var in = httpResponse.getEntity().getContent();
+
+        String content = ConvertInputStreamToText.convertStreamToString(in);
+        System.out.println("content should be: photo-deleted: " + content);
+        if(content == null){
+            throw new IOException("Content from ESP is Null");
+        }
+        return content;
     }
 
     @Transactional
@@ -123,16 +141,4 @@ public class EspService {
         return obj;
     }
 
-    @Transactional
-    public MultipartFile savePictureFileMultipartFile(MultipartFile file) {
-        try{
-            EntityManager em = getEmf();
-            em.getTransaction().begin();
-            em.persist(file);
-            em.getTransaction().commit();
-        } catch(EntityExistsException e) {
-            e.printStackTrace();
-        }
-        return file;
-    }
 }

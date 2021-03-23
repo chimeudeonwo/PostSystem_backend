@@ -24,8 +24,8 @@ public class UserConfig {
         DriverManagerDataSource ds = new DriverManagerDataSource();
         ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
         ds.setUsername("root");
-        ds.setPassword("root");
-        ds.setUrl("jdbc:mysql://localhost:3306/postboxsys?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC");
+        ds.setPassword("zh29");
+        ds.setUrl("jdbc:mysql://localhost:3306/postbox?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC");
         return ds;
     }
 

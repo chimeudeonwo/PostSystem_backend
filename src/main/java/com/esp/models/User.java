@@ -1,17 +1,24 @@
 package com.esp.models;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sun.istack.NotNull;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Indexed;
 
 import javax.persistence.*;
-import java.util.List;
-import java.util.Random;
+import java.io.Serializable;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Entity
-public class User {
+@Table(name = "users")
+public class User implements Serializable {
+    //private static final long serialVersionUID = 7654875958636458575L;
     @Id
-    @Column
-    private long id;
+    @Column(length = 64)
+    //@GeneratedValue(strategy = GenerationType.IDENTITY)
+    private String user_id;       //long is a large string (mediumtext). It is not suitable for indexing in general.
     @Column(nullable = false, unique = true, length = 45)
     private String username;
     @Column(nullable = false, length = 64)
@@ -23,19 +30,44 @@ public class User {
     @Column(nullable = false, unique = true, length = 45)
     private String email;
     private int phonenumber;
-    private String subscription;
     @OneToOne
+    private Subscription subscription;
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    /*cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE
+        },
+        mappedBy = "role")*/
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+    @OneToOne(cascade = CascadeType.ALL)
     private Esp esp;
-    @OneToOne
-    private UserHistory history;
+
+    //@OneToMany//(targetEntity=ImageEntity.class, mappedBy="user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)  //user //ONE-TO-MANY BIDIRECTIONAL, INVERSE SIDE
+    //@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+   /* @JoinTable(
+            name="imageEntity_user",  //joined table: Defaults to the concatenated names of the two associated primary entity tables, separated by an underscore.
+            joinColumns=
+                @JoinColumn(name="imageEntity_user_id", referencedColumnName="user_id"), //FK: The foreign key columns of the join table which reference the primary table of the entity owning the association. (I.e. the owning side of the association).
+            inverseJoinColumns=
+                @JoinColumn(name="imageEntity_id", referencedColumnName="id", unique = true) //PK
+    )*/
+    //@OneToMany
+   @Column(nullable = false, unique = true, length = 65)
+    private String imageEntityId;
+
+    private boolean enabled;
 
     public User() {
-        this.id = ThreadLocalRandom.current().nextLong(1000000000, 1000000000000L);
     }
 
-    public User(String username, String password, String firstname, String lastname, String email, int phonenumber,
-                String subscription, Esp esp, UserHistory history) {
-        this.id = ThreadLocalRandom.current().nextLong(1000000000, 1000000000000L);
+    public User(String id, String username, String password, String firstname, String lastname, String email, int phonenumber,
+                Subscription subscription, Esp esp, String imageEntity ) {
+        this.user_id = id;
         this.username = username;
         this.password = password;
         this.firstname = firstname;
@@ -43,36 +75,30 @@ public class User {
         this.email = email;
         this.phonenumber = phonenumber;
         this.subscription = subscription;
-        this.esp = esp;
-        this.history = history;
+        this.esp = Esp.createNewEsp(user_id);
+        this.imageEntityId = imageEntity;
     }
 
     public User(String username, String password) {
-        this.id = ThreadLocalRandom.current().nextLong(1000000000, 1000000000000L);
         this.username = username;
         this.password = password;
-        this.esp = Esp.createNewEsp(id);
-    }
-
-    public User(long id) {
-        this.id = ThreadLocalRandom.current().nextLong(1000000000, 1000000000000L);;
+        this.esp = Esp.createNewEsp(user_id);
     }
 
     public User(String name) {
-        Random rand = new Random();
-        this.id = rand.nextLong();
+        this.user_id = getId();
         this.username = name;
     }
 
     public User(String username, String password, boolean b, boolean b1, boolean b2, boolean b3, List<GrantedAuthority> user) {
     }
 
-    public long getId() {
-        return id;
+    public String getId() {
+        return user_id;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setId(String id) {
+        this.user_id = id;
     }
 
     public String getUsername() {
@@ -123,11 +149,11 @@ public class User {
         this.phonenumber = phonenumber;
     }
 
-    public String getSubscription() {
+    public Subscription getSubscription() {
         return subscription;
     }
 
-    public void setSubscription(String subscription) {
+    public void setSubscription(Subscription subscription) {
         this.subscription = subscription;
     }
 
@@ -139,31 +165,48 @@ public class User {
         this.esp = esp;
     }
 
-    public UserHistory getHistory() {
-        return history;
+    public String getImageEntityId() {
+        return imageEntityId;
     }
 
-    public void setHistory(UserHistory history) {
-        this.history = history;
+    public void setImageEntityId(String imageEntity) {
+        this.imageEntityId = imageEntity;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
+                "id=" + user_id +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", email='" + email + '\'' +
                 ", phonenumber=" + phonenumber +
-                ", subscription='" + subscription + '\'' +
+                ", subscription='" + subscription.getId() + '\'' +
                 ", esp=" + esp +
-                ", history=" + history +
+                ", imageEntityId=" + imageEntityId +
                 '}';
     }
 
-    public static User creatNewUserWithNewId(long id) {
+    public static User creatNewUserWithNewId(String id) {
         return new User(id);
     }
+
+    public  boolean enabled(){
+        return this.enabled;
+    }
+
+    public  void setEnabled(boolean enabled){
+        this.enabled = enabled;
+    }
+
 }
