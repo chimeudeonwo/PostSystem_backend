@@ -26,7 +26,7 @@ public class ImageEntity {
     private Esp esp;
     @OneToOne
     private UserHistory history;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String user_id;
 
    /* @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER) //MANY-TO-ONE BIDIRECTIONAL, this class is the OWNING SIDE of the association

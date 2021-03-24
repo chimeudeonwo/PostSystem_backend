@@ -1,5 +1,6 @@
 package com.esp.user;
 
+import com.esp.models.ImageEntity;
 import com.esp.models.Role;
 import com.esp.models.User;
 import javassist.NotFoundException;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @CrossOrigin(origins = "http://localhost:63342")
@@ -39,13 +42,14 @@ public class UserController {
     {
        return "User Home";
     }
+
     @PostMapping(value="/login")
-    public String loginPage(HttpServletRequest request) throws Exception {  //returns logged in user
+    public User loginPage(HttpServletRequest request) throws Exception {  //returns logged in user
         var loggedUser = new LoggedUserImpl(service);
         var user = loggedUser.loggedUser(request);  //loggedUser.loggedUserWithSpring(); //if it passed
         LOGGED_USER_ID = user.getId();
        // return "this is the home page for logged in users";
-        return user.getId();
+        return user;
     }
 
     @GetMapping(value="/logout")
@@ -93,8 +97,9 @@ public class UserController {
         var loggedUser = new LoggedUserImpl(service);
         var user = loggedUser.loggedUser(request);  //loggedUser.loggedUserWithSpring(); //if it passed
         LOGGED_USER_ID = user.getId();
-        // service.deregister(String user_id);
-        return user.getFirstname() + ", You have successfully deRegistered";
+        String name = user.getFirstname();
+        service.deregister(user.getId());
+        return name + ", You have successfully deRegistered";
     }
 
     @PostMapping(value="/createEmptyUser", produces = MediaType.APPLICATION_JSON_VALUE, consumes = "application/json")
@@ -103,15 +108,37 @@ public class UserController {
         return service.createEmptyUser();
     }
 
-    @GetMapping(value = "/get-user/{id}", produces = "application/json")
+    @GetMapping(value = "/get-user/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
     //@PreAuthorize("hasRole('ROLE_USER')")  //@PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_RESTRICTED_ADMIN', 'ROLE_ADMIN')")
-    public User getUser(@PathVariable String id){
+    public User getUser(@PathVariable String id)throws IOException, NotFoundException {
+        if(UserController.LOGGED_USER_ID == null){
+            System.out.println("user is not logged in");
+            throw new NotFoundException("User is not Logged");
+        }
        return service.getUser(id);
     }
 
     @GetMapping(value = "/getUserData/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUserDate(@PathVariable String userId){
         return service.userData(userId);
+    }
+
+    //get all pics of a particular user
+    @GetMapping(value = "/get-pics/{user_id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<ImageEntity> getPics(@PathVariable String user_id) throws IOException, NotFoundException {
+        if(UserController.LOGGED_USER_ID == null){
+           System.out.println("user is not logged in");
+            throw new NotFoundException("User is not Logged");
+        }
+        return service.getUsersPics(user_id);
+    }
+    @GetMapping(value = "/delete-pic-from-db/{image_id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String deletePic(@PathVariable String image_id) throws IOException, NotFoundException {
+            if(UserController.LOGGED_USER_ID == null){
+                 System.out.println("user is not logged in");
+                 throw new NotFoundException("User is not Logged");
+             }
+        return service.deleteImage(image_id);
     }
 
 }

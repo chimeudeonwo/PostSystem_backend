@@ -58,7 +58,7 @@ public class EspService {
     }
 
     public File saveImgFromEspToFileAndToDb(String name) throws Exception {
-        URL url = new URL("http://192.168.2.124/saved-photo");
+        URL url = new URL("http://192.168.0.101/saved-photo");
         BufferedImage img = ImageIO.read(url);
         //String fileName = LocalDate.now() + "ESP32" +  name + ".jpg";
         var id = ThreadLocalRandom.current().nextLong(2000000,5000000L);
@@ -72,7 +72,7 @@ public class EspService {
     }
 
     public ImageEntity saveImgFromEspToFileAndToDbEntity(String name) throws Exception {
-        URL url = new URL("http://192.168.2.124/saved-photo");
+        URL url = new URL("http://192.168.0.101/saved-photo");
         BufferedImage img = ImageIO.read(url);
         //String fileName = LocalDate.now() + "ESP32" +  name + ".jpg";
         var id = ThreadLocalRandom.current().nextLong(2000000,5000000L);
@@ -97,7 +97,7 @@ public class EspService {
         var fileOutput = new File("src/main/resources/espImgDir/" +  id + "_" + name + ".jpg"); //var createdFile = this.getClass().getResourceAsStream(fileOutput.getAbsolutePath());
 
         try{
-            URL url = new URL("http://192.168.2.124/saved-photo");
+            URL url = new URL("http://192.168.0.101/saved-photo");
             var  img = ImageIO.read(url);
             ImageIO.write(img, "jpg", fileOutput);
         }catch(Exception e){
@@ -110,12 +110,12 @@ public class EspService {
     }
 
     public void captureImage() throws IOException {
-        URL url = new URL("http://192.168.2.124/capture");
+        URL url = new URL("http://192.168.0.101/capture");
         BufferedImage img = ImageIO.read(url);
     }
 
     public String deleteImageInEsp() throws IOException {
-        var url = "http://192.168.2.124/delete";
+        var url = "http://192.168.0.101/delete";
         HttpPost post = new HttpPost(url);
         var httpResponse = HttpClientBuilder.create().build().execute(post);
         var in = httpResponse.getEntity().getContent();

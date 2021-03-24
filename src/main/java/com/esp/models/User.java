@@ -30,7 +30,10 @@ public class User implements Serializable {
     @Column(nullable = false, unique = true, length = 45)
     private String email;
     private int phonenumber;
-    private String subscription;
+    @OneToOne
+    private Subscription subscription;
+    //private String subscription;
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     /*cascade = {
             CascadeType.PERSIST,
@@ -56,7 +59,8 @@ public class User implements Serializable {
                 @JoinColumn(name="imageEntity_id", referencedColumnName="id", unique = true) //PK
     )*/
     //@OneToMany
-    @Column(nullable = false, unique = true, length = 65)
+
+   @Column(nullable = false, unique = true, length = 65)
     private String imageEntityId;
 
     private boolean enabled;
@@ -64,9 +68,9 @@ public class User implements Serializable {
     public User() {
     }
 
-    public User(String username, String password, String firstname, String lastname, String email, int phonenumber,
-                String subscription, Esp esp, String imageEntity ) {
-        //this.user_id = ThreadLocalRandom.current().nextLong(1000000000, 1000000000000L);
+    public User(String id, String username, String password, String firstname, String lastname, String email, int phonenumber,
+                Subscription subscription, Esp esp, String imageEntity ) {
+        this.user_id = id;
         this.username = username;
         this.password = password;
         this.firstname = firstname;
@@ -148,11 +152,11 @@ public class User implements Serializable {
         this.phonenumber = phonenumber;
     }
 
-    public String getSubscription() {
+    public Subscription getSubscription() {
         return subscription;
     }
 
-    public void setSubscription(String subscription) {
+    public void setSubscription(Subscription subscription) {
         this.subscription = subscription;
     }
 
@@ -176,6 +180,10 @@ public class User implements Serializable {
         return roles;
     }
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
@@ -190,8 +198,9 @@ public class User implements Serializable {
                 ", lastname='" + lastname + '\'' +
                 ", email='" + email + '\'' +
                 ", phonenumber=" + phonenumber +
-                ", subscription='" + subscription + '\'' +
+                ", subscription='" + subscription.getId() + '\'' +
                 ", esp=" + esp +
+                ", imageEntityId=" + imageEntityId +
                 ", history=" + imageEntityId +
                 '}';
     }

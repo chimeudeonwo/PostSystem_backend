@@ -48,7 +48,7 @@ public class ImageServiceUpdated {
         var FILE_URL = "http://192.168.2.124/saved-photo";
         var outputFile = new File(FILE_NAME);
 
-        InputStream in = new URL(FILE_URL).openStream();
+        var in = new URL(FILE_URL).openStream();
         Files.copy(in, Paths.get(FILE_NAME), StandardCopyOption.REPLACE_EXISTING);
 
         ImageEntity entity1 =  new ImageEntity(fileName, outputFile);

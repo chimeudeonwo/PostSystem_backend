@@ -39,6 +39,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -74,6 +75,7 @@ public class ImageService {
         try{
             EntityManager em = getEmf();
             em.getTransaction().begin();
+            em.merge(stream);
             em.persist(stream);
             //em.persist(esp);
             em.getTransaction().commit();
@@ -92,6 +94,24 @@ public class ImageService {
             //em.find(ImageEntity.class, id);
             TypedQuery<ImageEntity> hql = em.createQuery("SELECT img FROM ImageEntity img WHERE img.id=?1", ImageEntity.class); //@Query(value = "insert into commit_activity_link (commit_id, activity_id) VALUES (?1, ?2)", nativeQuery = true)
             hql.setParameter(1, id);
+            imgFile = hql.getSingleResult();
+            em.getTransaction().commit();
+        } catch(EntityExistsException e) {
+            e.printStackTrace();
+        }
+        System.out.println("file retrieved: , " + imgFile.toString());
+        return imgFile.getFile();
+    }
+
+    public File getImageFileDbHalfName(String halfName){
+        ImageEntity imgFile = null;
+        System.out.println("file retrieved b: , " + imgFile);
+        try{
+            EntityManager em = service.getEmf();
+            em.getTransaction().begin();
+            //em.find(ImageEntity.class, id);
+            TypedQuery<ImageEntity> hql = em.createQuery("SELECT img FROM ImageEntity img WHERE img.name like CONCAT('%',?1,'%')", ImageEntity.class); //@Query(value = "insert into commit_activity_link (commit_id, activity_id) VALUES (?1, ?2)", nativeQuery = true)
+            hql.setParameter(1, halfName);
             imgFile = hql.getSingleResult();
             em.getTransaction().commit();
         } catch(EntityExistsException e) {
@@ -155,6 +175,23 @@ public class ImageService {
         String destinationFile = "src/main/resources/espImgDir/"+ fileName;
         InputStream inputStream = url.openStream();
         return inputStream;*/ //return null;
+    }
+
+    //gets image from esp and saves to Database with the given name, load the file from DB and return it as inputStream
+    public InputStream getInputStreamWithoutSave(String id) throws Exception {
+        var getEntityFile = getImageFileDb(id);
+        if(getEntityFile == null){
+            getEntityFile = getImageFileDbHalfName(id);
+        }
+        System.out.println("filePath: " + getEntityFile);
+        return new FileInputStream(String.valueOf(getEntityFile));
+    }
+
+    public InputStream getInputStreamByName(String id) throws Exception {
+        var  getEntityFile = getImageFileDbHalfName(id);
+
+        System.out.println("filePath: " + getEntityFile);
+        return new FileInputStream(String.valueOf(getEntityFile));
     }
 
     public BufferedImage readImageFromFile() throws PrinterException {

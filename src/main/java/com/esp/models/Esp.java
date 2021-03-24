@@ -34,6 +34,7 @@ public class Esp {
     }
 
     public static Esp createNewEsp(String id) {
+        return new Esp(id);
       return new Esp(id);
     }
 
@@ -79,7 +80,6 @@ public class Esp {
    /* public User getUser() {
         return user;
     }
-
     public void setUser(User user) {
         this.user = user;
     }*/

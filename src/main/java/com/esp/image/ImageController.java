@@ -1,5 +1,6 @@
 package com.esp.image;
 
+import com.esp.models.ImageEntity;
 import com.esp.user.LoggedUserImpl;
 import com.esp.user.UserController;
 import com.esp.user.UserService;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.print.PrinterException;
 import java.io.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user/api/image")
@@ -32,6 +34,7 @@ public class ImageController {
     @GetMapping(value="/getEspImgOutput/{name}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<OutputStream> getImgDirectFromEspAsOutputStream(HttpServletResponse response, HttpServletRequest request,
             @PathVariable String name) throws Exception {
+
         if(UserController.LOGGED_USER_ID == null){
             System.out.println("user is not logged in");
             throw new NotFoundException("User is not Logged");
@@ -44,6 +47,9 @@ public class ImageController {
 
         var id = updatedImageService.getImgCreatedId();
         System.out.println("id: " + id);
+
+        var imgFile = imageService.getImgFileFromDb(id);
+
         File imgFile = imageService.getImgFileFromDb(id);
 
         response.setContentLength((int)imgFile.length());
@@ -72,6 +78,34 @@ public class ImageController {
         }
 
         InputStream byteArray = imageService.getInputStreamFromFile(name);
+
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        StreamUtils.copy(byteArray, response.getOutputStream()); //working but throws exception
+        return byteArray;
+    }
+
+    @RequestMapping(value = "/get-img-inputStream-without-save/{id}", method = RequestMethod.GET,  produces = MediaType.IMAGE_JPEG_VALUE)
+    public InputStream getStreamNoSave(HttpServletResponse response, HttpServletRequest request, @PathVariable String id) throws Exception {
+     //   if(UserController.LOGGED_USER_ID == null){
+     //       System.out.println("user is not logged in");
+     //       throw new NotFoundException("User is not Logged");
+      //  }
+
+        InputStream byteArray = imageService.getInputStreamWithoutSave(id);
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        StreamUtils.copy(byteArray, response.getOutputStream()); //working but throws exception
+        return byteArray;
+    }
+
+    @RequestMapping(value = "/get-img-inputStream-by-name/{id}", method = RequestMethod.GET,  produces = MediaType.IMAGE_JPEG_VALUE)
+    public InputStream getStreamByName(HttpServletResponse response, HttpServletRequest request, @PathVariable String id) throws Exception {
+        //   if(UserController.LOGGED_USER_ID == null){
+        //       System.out.println("user is not logged in");
+        //       throw new NotFoundException("User is not Logged");
+        //  }
+
+        InputStream byteArray = imageService.getInputStreamByName(id);
+
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         StreamUtils.copy(byteArray, response.getOutputStream()); //working but throws exception
         return byteArray;

@@ -1,5 +1,6 @@
 package com.esp.esp32;
 
+import com.esp.converters.ConvertInputStreamToText;
 import com.esp.image.ImageService;
 import com.esp.models.Esp;
 import com.esp.models.ImageEntity;
@@ -45,10 +46,10 @@ public class EspController {
     }
 
     @GetMapping(value ="/saveImgToFileAndDbFile/{name}", produces = MediaType.ALL_VALUE) //gets from Esp and saves to file and the file to Db
-    public File saveImgFromEspToFileAndDbEntity(@PathVariable @Nullable String name) throws Exception {
+    public InputStream saveImgFromEspToFileAndDbEntity(@PathVariable @Nullable String name, HttpServletResponse response) throws Exception {
         //return "Picture Saved to Both File and Database";
         var entity = service.saveImgFromEspToFileAndToDbEntity(name);
-        return entity.getFile();
+        return ConvertInputStreamToText.convertImgFileToInputStream(entity.getFile(), response);
     }
 
     //Saves image from esp to designated file directory
