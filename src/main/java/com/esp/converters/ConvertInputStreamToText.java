@@ -2,9 +2,6 @@ package com.esp.converters;
 
 import org.apache.http.client.methods.HttpPost;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-
 public class ConvertInputStreamToText {
 
     public static String convertStreamToString(InputStream stream) throws IOException {

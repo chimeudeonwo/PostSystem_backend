@@ -76,6 +76,7 @@ public class ImageService {
             EntityManager em = getEmf();
             em.getTransaction().begin();
             em.merge(stream);
+            em.persist(stream);
             //em.persist(esp);
             em.getTransaction().commit();
         } catch(EntityExistsException e) {

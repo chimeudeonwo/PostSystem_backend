@@ -115,7 +115,6 @@ public class UserController {
             System.out.println("user is not logged in");
             throw new NotFoundException("User is not Logged");
         }
-
        return service.getUser(id);
     }
 

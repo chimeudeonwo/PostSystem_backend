@@ -32,6 +32,8 @@ public class User implements Serializable {
     private int phonenumber;
     @OneToOne
     private Subscription subscription;
+    //private String subscription;
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     /*cascade = {
             CascadeType.PERSIST,
@@ -57,6 +59,7 @@ public class User implements Serializable {
                 @JoinColumn(name="imageEntity_id", referencedColumnName="id", unique = true) //PK
     )*/
     //@OneToMany
+
    @Column(nullable = false, unique = true, length = 65)
     private String imageEntityId;
 
@@ -75,7 +78,7 @@ public class User implements Serializable {
         this.email = email;
         this.phonenumber = phonenumber;
         this.subscription = subscription;
-        this.esp = Esp.createNewEsp(user_id);
+        this.esp = esp;
         this.imageEntityId = imageEntity;
     }
 
@@ -177,6 +180,10 @@ public class User implements Serializable {
         return roles;
     }
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
@@ -194,6 +201,7 @@ public class User implements Serializable {
                 ", subscription='" + subscription.getId() + '\'' +
                 ", esp=" + esp +
                 ", imageEntityId=" + imageEntityId +
+                ", history=" + imageEntityId +
                 '}';
     }
 

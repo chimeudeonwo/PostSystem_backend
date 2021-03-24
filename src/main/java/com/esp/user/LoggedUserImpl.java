@@ -33,6 +33,7 @@ public class LoggedUserImpl  {
         var sessionId =request.getSession().getId();
         String username = null;
         final String authorization = request.getHeader("Authorization");
+
         if(authorization == null){
             System.out.println("Authorization in Header in LoggedUserImpl is Null");
             throw new Exception("Authorization in Header is Null");

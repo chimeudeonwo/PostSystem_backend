@@ -30,12 +30,12 @@ public class ImageController {
     @Autowired
     private ImageServiceUpdated updatedImageService;
 
-
     //Gets direct from esp and save to db: WORKS WELL
     @GetMapping(value="/getEspImgOutput/{name}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<OutputStream> getImgDirectFromEspAsOutputStream(HttpServletResponse response, HttpServletRequest request,
             @PathVariable String name) throws Exception {
-       if(UserController.LOGGED_USER_ID == null){
+
+        if(UserController.LOGGED_USER_ID == null){
             System.out.println("user is not logged in");
             throw new NotFoundException("User is not Logged");
         }
@@ -47,7 +47,10 @@ public class ImageController {
 
         var id = updatedImageService.getImgCreatedId();
         System.out.println("id: " + id);
+
         var imgFile = imageService.getImgFileFromDb(id);
+
+        File imgFile = imageService.getImgFileFromDb(id);
 
         response.setContentLength((int)imgFile.length());
 
@@ -75,6 +78,7 @@ public class ImageController {
         }
 
         InputStream byteArray = imageService.getInputStreamFromFile(name);
+
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         StreamUtils.copy(byteArray, response.getOutputStream()); //working but throws exception
         return byteArray;
@@ -101,6 +105,7 @@ public class ImageController {
         //  }
 
         InputStream byteArray = imageService.getInputStreamByName(id);
+
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         StreamUtils.copy(byteArray, response.getOutputStream()); //working but throws exception
         return byteArray;
